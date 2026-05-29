@@ -1,0 +1,1255 @@
+{
+  "1": {
+    "name": "antimage",
+    "localized_name": "Anti-Mage",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "2": {
+    "name": "axe",
+    "localized_name": "Axe",
+    "roles": [
+      "Initiator",
+      "Durable",
+      "Disabler",
+      "Carry"
+    ]
+  },
+  "3": {
+    "name": "bane",
+    "localized_name": "Bane",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Nuker",
+      "Durable"
+    ]
+  },
+  "4": {
+    "name": "bloodseeker",
+    "localized_name": "Bloodseeker",
+    "roles": [
+      "Carry",
+      "Disabler",
+      "Nuker",
+      "Initiator"
+    ]
+  },
+  "5": {
+    "name": "crystal_maiden",
+    "localized_name": "Crystal Maiden",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "6": {
+    "name": "drow_ranger",
+    "localized_name": "Drow Ranger",
+    "roles": [
+      "Carry",
+      "Disabler",
+      "Pusher"
+    ]
+  },
+  "7": {
+    "name": "earthshaker",
+    "localized_name": "Earthshaker",
+    "roles": [
+      "Support",
+      "Initiator",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "8": {
+    "name": "juggernaut",
+    "localized_name": "Juggernaut",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Escape"
+    ]
+  },
+  "9": {
+    "name": "mirana",
+    "localized_name": "Mirana",
+    "roles": [
+      "Carry",
+      "Support",
+      "Escape",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "10": {
+    "name": "morphling",
+    "localized_name": "Morphling",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Durable",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "11": {
+    "name": "nevermore",
+    "localized_name": "Shadow Fiend",
+    "roles": [
+      "Carry",
+      "Nuker"
+    ]
+  },
+  "12": {
+    "name": "phantom_lancer",
+    "localized_name": "Phantom Lancer",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Pusher",
+      "Nuker"
+    ]
+  },
+  "13": {
+    "name": "puck",
+    "localized_name": "Puck",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "14": {
+    "name": "pudge",
+    "localized_name": "Pudge",
+    "roles": [
+      "Disabler",
+      "Initiator",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "15": {
+    "name": "razor",
+    "localized_name": "Razor",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Nuker",
+      "Pusher"
+    ]
+  },
+  "16": {
+    "name": "sand_king",
+    "localized_name": "Sand King",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Support",
+      "Nuker",
+      "Escape"
+    ]
+  },
+  "17": {
+    "name": "storm_spirit",
+    "localized_name": "Storm Spirit",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Nuker",
+      "Initiator",
+      "Disabler"
+    ]
+  },
+  "18": {
+    "name": "sven",
+    "localized_name": "Sven",
+    "roles": [
+      "Carry",
+      "Disabler",
+      "Initiator",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "19": {
+    "name": "tiny",
+    "localized_name": "Tiny",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Pusher",
+      "Initiator",
+      "Durable",
+      "Disabler"
+    ]
+  },
+  "20": {
+    "name": "vengefulspirit",
+    "localized_name": "Vengeful Spirit",
+    "roles": [
+      "Support",
+      "Initiator",
+      "Disabler",
+      "Nuker",
+      "Escape"
+    ]
+  },
+  "21": {
+    "name": "windrunner",
+    "localized_name": "Windranger",
+    "roles": [
+      "Carry",
+      "Support",
+      "Disabler",
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "22": {
+    "name": "zuus",
+    "localized_name": "Zeus",
+    "roles": [
+      "Nuker",
+      "Carry"
+    ]
+  },
+  "23": {
+    "name": "kunkka",
+    "localized_name": "Kunkka",
+    "roles": [
+      "Carry",
+      "Support",
+      "Disabler",
+      "Initiator",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "25": {
+    "name": "lina",
+    "localized_name": "Lina",
+    "roles": [
+      "Support",
+      "Carry",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "26": {
+    "name": "lion",
+    "localized_name": "Lion",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Nuker",
+      "Initiator"
+    ]
+  },
+  "27": {
+    "name": "shadow_shaman",
+    "localized_name": "Shadow Shaman",
+    "roles": [
+      "Support",
+      "Pusher",
+      "Disabler",
+      "Nuker",
+      "Initiator"
+    ]
+  },
+  "28": {
+    "name": "slardar",
+    "localized_name": "Slardar",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Initiator",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "29": {
+    "name": "tidehunter",
+    "localized_name": "Tidehunter",
+    "roles": [
+      "Initiator",
+      "Durable",
+      "Disabler",
+      "Nuker",
+      "Carry"
+    ]
+  },
+  "30": {
+    "name": "witch_doctor",
+    "localized_name": "Witch Doctor",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "31": {
+    "name": "lich",
+    "localized_name": "Lich",
+    "roles": [
+      "Support",
+      "Nuker"
+    ]
+  },
+  "32": {
+    "name": "riki",
+    "localized_name": "Riki",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Disabler"
+    ]
+  },
+  "33": {
+    "name": "enigma",
+    "localized_name": "Enigma",
+    "roles": [
+      "Disabler",
+      "Initiator",
+      "Pusher"
+    ]
+  },
+  "34": {
+    "name": "tinker",
+    "localized_name": "Tinker",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Pusher"
+    ]
+  },
+  "35": {
+    "name": "sniper",
+    "localized_name": "Sniper",
+    "roles": [
+      "Carry",
+      "Nuker"
+    ]
+  },
+  "36": {
+    "name": "necrolyte",
+    "localized_name": "Necrophos",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Durable",
+      "Disabler"
+    ]
+  },
+  "37": {
+    "name": "warlock",
+    "localized_name": "Warlock",
+    "roles": [
+      "Support",
+      "Initiator",
+      "Disabler"
+    ]
+  },
+  "38": {
+    "name": "beastmaster",
+    "localized_name": "Beastmaster",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "39": {
+    "name": "queenofpain",
+    "localized_name": "Queen of Pain",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Escape"
+    ]
+  },
+  "40": {
+    "name": "venomancer",
+    "localized_name": "Venomancer",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Initiator",
+      "Pusher",
+      "Disabler"
+    ]
+  },
+  "41": {
+    "name": "faceless_void",
+    "localized_name": "Faceless Void",
+    "roles": [
+      "Carry",
+      "Initiator",
+      "Disabler",
+      "Escape",
+      "Durable"
+    ]
+  },
+  "42": {
+    "name": "skeleton_king",
+    "localized_name": "Wraith King",
+    "roles": [
+      "Carry",
+      "Support",
+      "Durable",
+      "Disabler",
+      "Initiator"
+    ]
+  },
+  "43": {
+    "name": "death_prophet",
+    "localized_name": "Death Prophet",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "44": {
+    "name": "phantom_assassin",
+    "localized_name": "Phantom Assassin",
+    "roles": [
+      "Carry",
+      "Escape"
+    ]
+  },
+  "45": {
+    "name": "pugna",
+    "localized_name": "Pugna",
+    "roles": [
+      "Nuker",
+      "Pusher"
+    ]
+  },
+  "46": {
+    "name": "templar_assassin",
+    "localized_name": "Templar Assassin",
+    "roles": [
+      "Carry",
+      "Escape"
+    ]
+  },
+  "47": {
+    "name": "viper",
+    "localized_name": "Viper",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Initiator",
+      "Disabler"
+    ]
+  },
+  "48": {
+    "name": "luna",
+    "localized_name": "Luna",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Pusher"
+    ]
+  },
+  "49": {
+    "name": "dragon_knight",
+    "localized_name": "Dragon Knight",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Durable",
+      "Disabler",
+      "Initiator",
+      "Nuker"
+    ]
+  },
+  "50": {
+    "name": "dazzle",
+    "localized_name": "Dazzle",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "51": {
+    "name": "rattletrap",
+    "localized_name": "Clockwerk",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "52": {
+    "name": "leshrac",
+    "localized_name": "Leshrac",
+    "roles": [
+      "Carry",
+      "Support",
+      "Nuker",
+      "Pusher",
+      "Disabler"
+    ]
+  },
+  "53": {
+    "name": "furion",
+    "localized_name": "Nature's Prophet",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "54": {
+    "name": "life_stealer",
+    "localized_name": "Lifestealer",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Escape",
+      "Disabler"
+    ]
+  },
+  "55": {
+    "name": "dark_seer",
+    "localized_name": "Dark Seer",
+    "roles": [
+      "Initiator",
+      "Escape",
+      "Disabler"
+    ]
+  },
+  "56": {
+    "name": "clinkz",
+    "localized_name": "Clinkz",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Pusher"
+    ]
+  },
+  "57": {
+    "name": "omniknight",
+    "localized_name": "Omniknight",
+    "roles": [
+      "Support",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "58": {
+    "name": "enchantress",
+    "localized_name": "Enchantress",
+    "roles": [
+      "Support",
+      "Pusher",
+      "Durable",
+      "Disabler"
+    ]
+  },
+  "59": {
+    "name": "huskar",
+    "localized_name": "Huskar",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Initiator"
+    ]
+  },
+  "60": {
+    "name": "night_stalker",
+    "localized_name": "Night Stalker",
+    "roles": [
+      "Carry",
+      "Initiator",
+      "Durable",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "61": {
+    "name": "broodmother",
+    "localized_name": "Broodmother",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "62": {
+    "name": "bounty_hunter",
+    "localized_name": "Bounty Hunter",
+    "roles": [
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "63": {
+    "name": "weaver",
+    "localized_name": "Weaver",
+    "roles": [
+      "Carry",
+      "Escape"
+    ]
+  },
+  "64": {
+    "name": "jakiro",
+    "localized_name": "Jakiro",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Pusher",
+      "Disabler"
+    ]
+  },
+  "65": {
+    "name": "batrider",
+    "localized_name": "Batrider",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "66": {
+    "name": "chen",
+    "localized_name": "Chen",
+    "roles": [
+      "Support",
+      "Pusher"
+    ]
+  },
+  "67": {
+    "name": "spectre",
+    "localized_name": "Spectre",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Escape"
+    ]
+  },
+  "68": {
+    "name": "ancient_apparition",
+    "localized_name": "Ancient Apparition",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "69": {
+    "name": "doom_bringer",
+    "localized_name": "Doom",
+    "roles": [
+      "Carry",
+      "Disabler",
+      "Initiator",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "70": {
+    "name": "ursa",
+    "localized_name": "Ursa",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Disabler"
+    ]
+  },
+  "71": {
+    "name": "spirit_breaker",
+    "localized_name": "Spirit Breaker",
+    "roles": [
+      "Carry",
+      "Initiator",
+      "Disabler",
+      "Durable",
+      "Escape"
+    ]
+  },
+  "72": {
+    "name": "gyrocopter",
+    "localized_name": "Gyrocopter",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "73": {
+    "name": "alchemist",
+    "localized_name": "Alchemist",
+    "roles": [
+      "Carry",
+      "Support",
+      "Durable",
+      "Disabler",
+      "Initiator",
+      "Nuker"
+    ]
+  },
+  "74": {
+    "name": "invoker",
+    "localized_name": "Invoker",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Disabler",
+      "Escape",
+      "Pusher"
+    ]
+  },
+  "75": {
+    "name": "silencer",
+    "localized_name": "Silencer",
+    "roles": [
+      "Carry",
+      "Support",
+      "Disabler",
+      "Initiator",
+      "Nuker"
+    ]
+  },
+  "76": {
+    "name": "obsidian_destroyer",
+    "localized_name": "Outworld Destroyer",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "77": {
+    "name": "lycan",
+    "localized_name": "Lycan",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Durable",
+      "Escape"
+    ]
+  },
+  "78": {
+    "name": "brewmaster",
+    "localized_name": "Brewmaster",
+    "roles": [
+      "Carry",
+      "Initiator",
+      "Durable",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "79": {
+    "name": "shadow_demon",
+    "localized_name": "Shadow Demon",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Initiator",
+      "Nuker"
+    ]
+  },
+  "80": {
+    "name": "lone_druid",
+    "localized_name": "Lone Druid",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Durable"
+    ]
+  },
+  "81": {
+    "name": "chaos_knight",
+    "localized_name": "Chaos Knight",
+    "roles": [
+      "Carry",
+      "Disabler",
+      "Durable",
+      "Pusher",
+      "Initiator"
+    ]
+  },
+  "82": {
+    "name": "meepo",
+    "localized_name": "Meepo",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Nuker",
+      "Disabler",
+      "Initiator",
+      "Pusher"
+    ]
+  },
+  "83": {
+    "name": "treant",
+    "localized_name": "Treant Protector",
+    "roles": [
+      "Support",
+      "Initiator",
+      "Durable",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "84": {
+    "name": "ogre_magi",
+    "localized_name": "Ogre Magi",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler",
+      "Durable",
+      "Initiator"
+    ]
+  },
+  "85": {
+    "name": "undying",
+    "localized_name": "Undying",
+    "roles": [
+      "Support",
+      "Durable",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "86": {
+    "name": "rubick",
+    "localized_name": "Rubick",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "87": {
+    "name": "disruptor",
+    "localized_name": "Disruptor",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Nuker",
+      "Initiator"
+    ]
+  },
+  "88": {
+    "name": "nyx_assassin",
+    "localized_name": "Nyx Assassin",
+    "roles": [
+      "Disabler",
+      "Nuker",
+      "Initiator",
+      "Escape"
+    ]
+  },
+  "89": {
+    "name": "naga_siren",
+    "localized_name": "Naga Siren",
+    "roles": [
+      "Carry",
+      "Support",
+      "Pusher",
+      "Disabler",
+      "Initiator",
+      "Escape"
+    ]
+  },
+  "90": {
+    "name": "keeper_of_the_light",
+    "localized_name": "Keeper of the Light",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "91": {
+    "name": "wisp",
+    "localized_name": "Io",
+    "roles": [
+      "Support",
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "92": {
+    "name": "visage",
+    "localized_name": "Visage",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Durable",
+      "Disabler",
+      "Pusher"
+    ]
+  },
+  "93": {
+    "name": "slark",
+    "localized_name": "Slark",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "94": {
+    "name": "medusa",
+    "localized_name": "Medusa",
+    "roles": [
+      "Carry",
+      "Disabler",
+      "Durable"
+    ]
+  },
+  "95": {
+    "name": "troll_warlord",
+    "localized_name": "Troll Warlord",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Disabler",
+      "Durable"
+    ]
+  },
+  "96": {
+    "name": "centaur",
+    "localized_name": "Centaur Warrunner",
+    "roles": [
+      "Durable",
+      "Initiator",
+      "Disabler",
+      "Nuker",
+      "Escape"
+    ]
+  },
+  "97": {
+    "name": "magnataur",
+    "localized_name": "Magnus",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Nuker",
+      "Escape"
+    ]
+  },
+  "98": {
+    "name": "shredder",
+    "localized_name": "Timbersaw",
+    "roles": [
+      "Nuker",
+      "Durable",
+      "Escape"
+    ]
+  },
+  "99": {
+    "name": "bristleback",
+    "localized_name": "Bristleback",
+    "roles": [
+      "Carry",
+      "Durable",
+      "Initiator",
+      "Nuker"
+    ]
+  },
+  "100": {
+    "name": "tusk",
+    "localized_name": "Tusk",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "101": {
+    "name": "skywrath_mage",
+    "localized_name": "Skywrath Mage",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "102": {
+    "name": "abaddon",
+    "localized_name": "Abaddon",
+    "roles": [
+      "Support",
+      "Carry",
+      "Durable"
+    ]
+  },
+  "103": {
+    "name": "elder_titan",
+    "localized_name": "Elder Titan",
+    "roles": [
+      "Initiator",
+      "Disabler",
+      "Nuker",
+      "Durable"
+    ]
+  },
+  "104": {
+    "name": "legion_commander",
+    "localized_name": "Legion Commander",
+    "roles": [
+      "Carry",
+      "Disabler",
+      "Initiator",
+      "Durable",
+      "Nuker"
+    ]
+  },
+  "105": {
+    "name": "techies",
+    "localized_name": "Techies",
+    "roles": [
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "106": {
+    "name": "ember_spirit",
+    "localized_name": "Ember Spirit",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Nuker",
+      "Disabler",
+      "Initiator"
+    ]
+  },
+  "107": {
+    "name": "earth_spirit",
+    "localized_name": "Earth Spirit",
+    "roles": [
+      "Nuker",
+      "Escape",
+      "Disabler",
+      "Initiator",
+      "Durable"
+    ]
+  },
+  "108": {
+    "name": "abyssal_underlord",
+    "localized_name": "Underlord",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler",
+      "Durable",
+      "Escape"
+    ]
+  },
+  "109": {
+    "name": "terrorblade",
+    "localized_name": "Terrorblade",
+    "roles": [
+      "Carry",
+      "Pusher",
+      "Nuker"
+    ]
+  },
+  "110": {
+    "name": "phoenix",
+    "localized_name": "Phoenix",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Initiator",
+      "Escape",
+      "Disabler"
+    ]
+  },
+  "111": {
+    "name": "oracle",
+    "localized_name": "Oracle",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "112": {
+    "name": "winter_wyvern",
+    "localized_name": "Winter Wyvern",
+    "roles": [
+      "Support",
+      "Disabler",
+      "Nuker"
+    ]
+  },
+  "113": {
+    "name": "arc_warden",
+    "localized_name": "Arc Warden",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Nuker"
+    ]
+  },
+  "114": {
+    "name": "monkey_king",
+    "localized_name": "Monkey King",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Disabler",
+      "Initiator"
+    ]
+  },
+  "119": {
+    "name": "dark_willow",
+    "localized_name": "Dark Willow",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "120": {
+    "name": "pangolier",
+    "localized_name": "Pangolier",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Disabler",
+      "Durable",
+      "Escape",
+      "Initiator"
+    ]
+  },
+  "121": {
+    "name": "grimstroke",
+    "localized_name": "Grimstroke",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "123": {
+    "name": "hoodwink",
+    "localized_name": "Hoodwink",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Escape",
+      "Disabler"
+    ]
+  },
+  "126": {
+    "name": "void_spirit",
+    "localized_name": "Void Spirit",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "128": {
+    "name": "snapfire",
+    "localized_name": "Snapfire",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "129": {
+    "name": "mars",
+    "localized_name": "Mars",
+    "roles": [
+      "Carry",
+      "Initiator",
+      "Disabler",
+      "Durable"
+    ]
+  },
+  "131": {
+    "name": "ringmaster",
+    "localized_name": "Ringmaster",
+    "roles": [
+      "Support",
+      "Nuker",
+      "Escape",
+      "Disabler"
+    ]
+  },
+  "135": {
+    "name": "dawnbreaker",
+    "localized_name": "Dawnbreaker",
+    "roles": [
+      "Carry",
+      "Durable"
+    ]
+  },
+  "136": {
+    "name": "marci",
+    "localized_name": "Marci",
+    "roles": [
+      "Support",
+      "Carry",
+      "Initiator",
+      "Disabler",
+      "Escape"
+    ]
+  },
+  "137": {
+    "name": "primal_beast",
+    "localized_name": "Primal Beast",
+    "roles": [
+      "Initiator",
+      "Durable",
+      "Disabler"
+    ]
+  },
+  "138": {
+    "name": "muerta",
+    "localized_name": "Muerta",
+    "roles": [
+      "Carry",
+      "Nuker",
+      "Disabler"
+    ]
+  },
+  "145": {
+    "name": "kez",
+    "localized_name": "Kez",
+    "roles": [
+      "Carry",
+      "Escape",
+      "Disabler"
+    ]
+  },
+  "155": {
+    "name": "largo",
+    "localized_name": "Largo",
+    "roles": [
+      "Durable",
+      "Disabler",
+      "Support"
+    ]
+  }
+}
