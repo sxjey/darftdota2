@@ -7,13 +7,18 @@ import sys
 import itertools
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from data.heroes_static import get_all_heroes, get_hero_by_id
 from data.opendota_client import OpenDotaClient
 from config.settings import SCORING_WEIGHTS, WINRATES_FILE, MATCHUP_DATA_FILE
 from core.draft_state import DraftState
+from scoring.position_assigner import get_empty_positions, POSITIONS
+try:
+    from data.hero_notes import HERO_NOTES
+except ImportError:
+    HERO_NOTES = {}
 
 
 @dataclass
@@ -29,6 +34,7 @@ class HeroScore:
     role_penalty: float
     meta_score: float
     explanation: str
+    detailed_reasons: List[str] = field(default_factory=list)
 
 
 # Описание брэкетов (рангов) для UI
@@ -252,30 +258,30 @@ class HeroRecommender:
     def score_hero(self, hero_id: int, draft_state: DraftState) -> HeroScore:
         """
         Рассчитать полный скор для героя
-        
+
         Формула:
         total = base * w_base + counter * w_counter + synergy * w_synergy + role * w_role + meta * w_meta
         """
         hero = get_hero_by_id(hero_id)
-        
+
         # 1. Базовый винрейт (по выбранному рангу)
         base_winrate = self._get_winrate(hero_id)
-        
+
         # 2. Контрпики врагов
         enemy_ids = [p.hero_id for p in draft_state.enemy_picks]
         counter_bonus = self.get_counter_score(hero_id, enemy_ids)
-        
+
         # 3. Синергия с союзниками
         ally_ids = [p.hero_id for p in draft_state.ally_picks]
         synergy_bonus = self.get_synergy_score(hero_id, ally_ids)
-        
+
         # 4. Пенальти ролей
         current_roles = draft_state.get_ally_roles()
         role_penalty = self.get_role_penalty(hero_id, current_roles)
-        
+
         # 5. Мета
         meta_score = self.get_meta_score(hero_id)
-        
+
         # Применяем веса
         w = self.weights
         total = (
@@ -285,25 +291,68 @@ class HeroRecommender:
             role_penalty * w["role_penalty"] +
             meta_score * w["meta_multiplier"]
         )
-        
-        # Создаём объяснение
+
+        # Создаём краткое объяснение
         parts = []
         if counter_bonus > 5:
             parts.append(f"сильный контрпик (+{counter_bonus:.0f})")
         elif counter_bonus < -5:
             parts.append(f"контрится ({counter_bonus:.0f})")
-        
+
         if synergy_bonus > 5:
             parts.append(f"хорошая синергия (+{synergy_bonus:.0f})")
-        
+
         if role_penalty < -5:
             parts.append(f"перебор ролей ({role_penalty:.0f})")
-        
+
         if meta_score > 5:
             parts.append(f"в мете (+{meta_score:.0f})")
-        
+
         explanation = ", ".join(parts) if parts else "сбалансированный пик"
-        
+
+        # Детальные причины для кнопки "Почему?"
+        detailed_reasons = []
+        detailed_reasons.append(f"📊 Базовый винрейт: {base_winrate:.1f}%")
+
+        # Контрпики — по каждому врагу
+        if hero_id in self.matchups:
+            matchup_dict = {}
+            for m in self.matchups[hero_id]:
+                eid = m.get('hero_id')
+                games = m.get('games_played', 1)
+                if games > 0:
+                    matchup_dict[eid] = (m.get('wins', 0) / games) * 100
+            for ep in draft_state.enemy_picks:
+                wr = matchup_dict.get(ep.hero_id)
+                if wr is not None:
+                    if wr > 52:
+                        detailed_reasons.append(
+                            f"⚔ Контрпик vs {ep.hero_name}: {wr:.0f}% winrate")
+                    elif wr < 45:
+                        detailed_reasons.append(
+                            f"⚠ Слабо vs {ep.hero_name}: {wr:.0f}% winrate")
+
+        # Синергии — по каждому союзнику
+        synergy_pairs = self._get_synergy_pairs()
+        for ap in draft_state.ally_picks:
+            pair = tuple(sorted([hero_id, ap.hero_id]))
+            if pair in synergy_pairs:
+                detailed_reasons.append(
+                    f"💙 Синергия с {ap.hero_name}: +{synergy_pairs[pair]:.0f}")
+
+        # Заметка из базы знаний
+        note = HERO_NOTES.get(hero_id)
+        if note:
+            detailed_reasons.append(f"📝 {note}")
+
+        if meta_score > 5:
+            detailed_reasons.append(f"📈 В мете на твоём ранге (+{meta_score:.0f})")
+        elif meta_score < -5:
+            detailed_reasons.append(f"📉 Не в мете на твоём ранге ({meta_score:.0f})")
+
+        if role_penalty < -5:
+            detailed_reasons.append(f"🔴 Перебор ролей в команде ({role_penalty:.0f})")
+
         return HeroScore(
             hero_id=hero_id,
             hero_name=hero["localized_name"],
@@ -314,7 +363,8 @@ class HeroRecommender:
             synergy_bonus=round(synergy_bonus, 1),
             role_penalty=round(role_penalty, 1),
             meta_score=round(meta_score, 1),
-            explanation=explanation
+            explanation=explanation,
+            detailed_reasons=detailed_reasons,
         )
     
     def get_recommendations(self, draft_state: DraftState, 
@@ -373,78 +423,87 @@ class HeroRecommender:
     
     def analyze_matchup(self, draft_state: DraftState) -> Dict:
         """
-        Анализ обеих команд при полном драфте (5v5).
+        Анализ обеих команд (работает и с неполными).
         Считает скоры каждого героя и общий перевес.
         
         Returns:
             {
-                "ally_scores":  [HeroScore, ...] (5 шт),
-                "enemy_scores": [HeroScore, ...] (5 шт),
+                "ally_scores":  [HeroScore, ...],
+                "enemy_scores": [HeroScore, ...],
                 "ally_total": float,
                 "enemy_total": float,
-                "diff": float,                  # ally - enemy
-                "advantage_pct": float,         # -100..+100, > 0 = наша команда сильнее
+                "diff": float,
+                "advantage_pct": float,
                 "winner": "ally"|"enemy"|"draw",
-                "verdict": str,                 # текстовый вердикт
-                "key_factors": List[str],       # ключевые факторы
+                "verdict": str,
+                "key_factors": List[str],
+                "is_partial": bool,
+                "missing_ally_positions": List[str],
+                "missing_enemy_positions": List[str],
             }
         """
-        # Скорим союзников из их перспективы
         ally_scores = [self.score_hero(p.hero_id, draft_state)
                        for p in draft_state.ally_picks]
-        
-        # Для врагов меняем перспективу: они становятся "союзниками"
-        # тогда их контрпики/синергии считаются правильно
+
         swapped = DraftState()
         swapped.ally_picks = list(draft_state.enemy_picks)
         swapped.enemy_picks = list(draft_state.ally_picks)
         swapped.ally_bans = list(draft_state.enemy_bans)
         swapped.enemy_bans = list(draft_state.ally_bans)
-        
+
         enemy_scores = [self.score_hero(p.hero_id, swapped)
                         for p in draft_state.enemy_picks]
-        
+
         ally_total = sum(s.total_score for s in ally_scores)
         enemy_total = sum(s.total_score for s in enemy_scores)
         diff = ally_total - enemy_total
-        
-        # Преимущество в процентах (от среднего скора)
+
         avg = max((abs(ally_total) + abs(enemy_total)) / 2, 1)
         advantage_pct = max(-100.0, min(100.0, (diff / avg) * 100))
-        
-        # Вердикт
-        if diff > 30:
+
+        is_partial = len(draft_state.ally_picks) < 5 or len(draft_state.enemy_picks) < 5
+
+        missing_ally = get_empty_positions(draft_state.ally_picks) if is_partial else []
+        missing_enemy = get_empty_positions(draft_state.enemy_picks) if is_partial else []
+
+        total_heroes = len(draft_state.ally_picks) + len(draft_state.enemy_picks)
+        scale = total_heroes / 10.0 if total_heroes > 0 else 1.0
+
+        if diff > 30 * scale:
             winner = "ally"
             verdict = "🏆 Большое преимущество твоей команды"
-        elif diff > 10:
+        elif diff > 10 * scale:
             winner = "ally"
             verdict = "✅ Лёгкий перевес у твоей команды"
-        elif diff < -30:
+        elif diff < -30 * scale:
             winner = "enemy"
             verdict = "⚠️ Большое преимущество врагов"
-        elif diff < -10:
+        elif diff < -10 * scale:
             winner = "enemy"
             verdict = "🟠 Лёгкий перевес у врагов"
         else:
             winner = "draw"
             verdict = "⚖️ Равный матчап — решит скилл"
-        
-        # Ключевые факторы
+
+        if is_partial:
+            verdict = "📋 Предв. " + verdict.lower()
+
         factors = []
-        # Сильнейший герой каждой команды
         if ally_scores:
             best_ally = max(ally_scores, key=lambda s: s.total_score)
             factors.append(f"Лучший в твоей команде: {best_ally.hero_name} ({best_ally.total_score:.0f})")
         if enemy_scores:
             best_enemy = max(enemy_scores, key=lambda s: s.total_score)
             factors.append(f"Опасный у врагов: {best_enemy.hero_name} ({best_enemy.total_score:.0f})")
-        
-        # Слабое звено своей команды
         if ally_scores:
             worst_ally = min(ally_scores, key=lambda s: s.total_score)
             if worst_ally.total_score < 50:
                 factors.append(f"Слабое звено у тебя: {worst_ally.hero_name} ({worst_ally.total_score:.0f})")
-        
+        if missing_ally:
+            factors.append(f"Не хватает: {', '.join(missing_ally)}")
+        if missing_enemy:
+            factors.append(f"Врагам не хватает: {', '.join(missing_enemy)}")
+
         return {
             "ally_scores": ally_scores,
             "enemy_scores": enemy_scores,
@@ -455,6 +514,47 @@ class HeroRecommender:
             "winner": winner,
             "verdict": verdict,
             "key_factors": factors,
+            "is_partial": is_partial,
+            "missing_ally_positions": missing_ally,
+            "missing_enemy_positions": missing_enemy,
+            "composition": self._analyze_composition(draft_state),
+        }
+
+    def _analyze_composition(self, draft_state: DraftState) -> Dict:
+        ROLE_TAGS = {
+            "Carry": {"dmg_type": "physical", "timing": "late"},
+            "Mid": {"dmg_type": "mixed", "timing": "mid"},
+            "Offlane": {"dmg_type": "mixed", "timing": "mid"},
+            "Support": {"dmg_type": "magical", "timing": "early"},
+            "Roaming": {"dmg_type": "magical", "timing": "early"},
+        }
+        phys = 0
+        mag = 0
+        early = 0
+        mid_t = 0
+        late = 0
+        disables = 0
+        for pick in draft_state.ally_picks:
+            hero = get_hero_by_id(pick.hero_id)
+            roles = hero.get("roles", [])
+            for r in roles:
+                tags = ROLE_TAGS.get(r, {})
+                dt = tags.get("dmg_type", "mixed")
+                tm = tags.get("timing", "mid")
+                if dt == "physical": phys += 1
+                elif dt == "magical": mag += 1
+                else: phys += 0.5; mag += 0.5
+                if tm == "early": early += 1
+                elif tm == "late": late += 1
+                else: mid_t += 1
+            if "Support" in roles or "Roaming" in roles:
+                disables += 1
+        total = max(phys + mag, 1)
+        return {
+            "physical_pct": round(phys / total * 100),
+            "magical_pct": round(mag / total * 100),
+            "timing": "early" if early > late else "late" if late > early else "balanced",
+            "disable_score": min(disables, 3),
         }
     
     def explain_pick(self, hero_id: int, draft_state: DraftState) -> str:

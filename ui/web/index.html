@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dota 2 Draft Assistant</title>
+<style>
+:root {
+  --bg: #0d0d12; --bg2: #111118; --panel: #16161e; --card: #1c1c28;
+  --card-hover: #26263a; --card-active: #30304a; --border: #28283e;
+  --accent: #ff2d78; --accent-hover: #ff5599;
+  --ally: #ff2d78; --ally-bg: #1a0d16; --enemy: #3b82f6; --enemy-bg: #0d1424;
+  --text: #f0f0f5; --text2: #9898b0; --text3: #585870;
+  --good: #22c55e; --mid: #f59e0b; --bad: #ef4444; --highlight: #fbbf24;
+  --ban: #a855f7; --ban-bg: #180d28;
+  --carry: #f97316; --mid-r: #a855f7; --offlane: #3b82f6;
+  --support: #22c55e; --roaming: #ef4444;
+  --radius: 8px; --radius-sm: 4px; --radius-lg: 12px;
+  --font: 'Segoe UI Variable','Segoe UI',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;height:100vh}
+#app{display:flex;flex-direction:column;height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.tab-nav{display:flex;align-items:center;background:var(--panel);border-bottom:1px solid var(--border);padding:0 16px;flex-shrink:0}
+.tab-btn{padding:10px 20px;color:var(--text2);cursor:pointer;border:none;background:none;font-size:13px;font-weight:600;position:relative;font-family:var(--font)}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent)}
+.tab-btn.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0}
+.tab-nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.rank-sel{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;font-size:11px;font-family:var(--font);outline:none}
+.nav-btn{background:var(--card);color:var(--text2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 10px;font-size:11px;font-family:var(--font);cursor:pointer;transition:all .15s}
+.nav-btn:hover{background:var(--card-hover);color:var(--text)}
+
+.tab-content{flex:1;overflow:hidden;display:none}
+.tab-content.active{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* DRAFT */
+#tab-draft{flex-direction:row}
+.draft-grid-area{flex:3;display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:0}
+.draft-sidebar{flex:2;display:flex;flex-direction:column;overflow-y:auto;padding:8px;gap:6px}
+
+.grid-toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.grid-search{flex:1;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-family:var(--font);outline:none}
+.grid-search:focus{border-color:var(--accent)}
+.grid-search::placeholder{color:var(--text3)}
+.team-toggle{display:flex;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
+.team-toggle button{padding:5px 12px;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:var(--font);transition:all .15s;background:var(--card);color:var(--text2)}
+.team-toggle button.active-ally{background:var(--ally);color:#fff}
+.team-toggle button.active-enemy{background:var(--enemy);color:#fff}
+
+.heroes-scroll{flex:1;overflow-y:auto;padding:8px}
+.role-section{margin-bottom:10px}
+.role-header{display:flex;align-items:center;gap:8px;padding:3px 8px;border-radius:var(--radius-sm);margin-bottom:3px}
+.role-header .role-label{font-size:11px;font-weight:700;color:#fff;padding:2px 8px;border-radius:3px}
+.role-header .role-count{font-size:10px;color:var(--text3)}
+.hero-grid{display:flex;flex-wrap:wrap;gap:3px}
+.hero-cell{width:40px;height:40px;border-radius:var(--radius-sm);overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:all .15s;position:relative;background:var(--card)}
+.hero-cell:hover{border-color:var(--accent);transform:scale(1.1);z-index:2;box-shadow:0 0 12px rgba(255,45,120,.3)}
+.hero-cell.excluded{opacity:.25;pointer-events:none;filter:grayscale(1)}
+.hero-cell img{width:100%;height:100%;object-fit:cover;display:block}
+
+.team-panel{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.team-panel-header{padding:6px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.team-panel-header.ally-hdr{background:var(--ally-bg);color:var(--ally)}
+.team-panel-header.enemy-hdr{background:var(--enemy-bg);color:var(--enemy)}
+.team-slots{padding:4px;display:flex;flex-direction:column;gap:2px}
+.team-slot{display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--card);border-radius:var(--radius-sm);border:1px solid var(--border);transition:background .15s}
+.team-slot:hover{background:var(--card-hover)}
+.team-slot img{width:24px;height:24px;border-radius:3px}
+.team-slot .slot-name{flex:1;font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-slot .slot-pos{font-size:9px;font-weight:700;color:#fff;padding:1px 5px;border-radius:3px;cursor:pointer;transition:filter .15s}
+.team-slot .slot-pos:hover{filter:brightness(1.3)}
+.team-slot .slot-pos.overridden{text-decoration:underline}
+.team-slot .slot-remove{font-size:12px;color:var(--bad);cursor:pointer;padding:0 4px;font-weight:700}
+.team-slot .slot-remove:hover{color:#ff6666}
+
+.ban-panel{border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.ban-header{padding:5px 10px;background:var(--ban-bg);color:var(--ban);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.ban-add{cursor:pointer;font-size:14px}
+.ban-add:hover{color:#c77dff}
+.ban-icons{padding:4px;display:flex;flex-wrap:wrap;gap:3px;min-height:28px;align-items:center}
+.ban-icon{width:22px;height:22px;border-radius:3px;cursor:pointer;border:1px solid var(--border)}
+.ban-icon:hover{border-color:var(--bad)}
+.ban-search{padding:4px}
+.ban-search input{width:100%;background:var(--card);color:var(--text);border:1px solid var(--ban);border-radius:var(--radius-sm);padding:4px 8px;font-size:11px;outline:none;font-family:var(--font)}
+.ban-results{max-height:120px;overflow-y:auto}
+.ban-result{padding:3px 8px;font-size:11px;cursor:pointer;color:var(--text)}
+.ban-result:hover{background:var(--card-hover)}
+
+.ban-suggest{padding:4px 8px}
+.ban-suggest-title{font-size:10px;color:var(--ban);font-weight:600;margin-bottom:4px}
+.ban-suggest-item{display:flex;align-items:center;gap:6px;padding:3px 6px;background:var(--ban-bg);border:1px solid rgba(168,85,247,.2);border-radius:var(--radius-sm);margin-bottom:2px;cursor:pointer;transition:all .15s}
+.ban-suggest-item:hover{background:rgba(168,85,247,.15);border-color:var(--ban)}
+.ban-suggest-item img{width:20px;height:20px;border-radius:3px}
+.ban-suggest-item .bs-name{font-size:11px;font-weight:600;color:var(--text)}
+.ban-suggest-item .bs-reason{font-size:9px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ban-suggest-item .bs-score{font-size:9px;font-weight:700;color:var(--ban);margin-left:auto}
+
+/* DRAFT RECS */
+.draft-recs{border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.draft-recs-header{padding:5px 10px;background:var(--ally-bg);color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.draft-recs-body{padding:4px;display:flex;flex-direction:column;gap:2px}
+.draft-rec-row{display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--card);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.draft-rec-row:hover{background:var(--card-hover);border-color:var(--accent)}
+.draft-rec-row img{width:22px;height:22px;border-radius:3px}
+.draft-rec-row .dr-name{flex:1;font-size:11px;font-weight:600}
+.draft-rec-row .dr-role{font-size:9px;font-weight:700;color:#fff;padding:1px 5px;border-radius:3px}
+.draft-rec-row .dr-score{font-size:10px;font-weight:700;margin-left:auto}
+.draft-rec-row .dr-why{font-size:9px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+
+/* ANALYSIS */
+#tab-analysis{flex-direction:column;overflow-y:auto;padding:16px;gap:12px}
+.advantage-bar-wrap{flex-shrink:0}
+.advantage-bar-container{background:var(--card);border-radius:6px;height:28px;overflow:hidden;position:relative}
+.advantage-bar-ally{height:100%;background:var(--ally);transition:width .5s;position:absolute;left:0;top:0;border-radius:6px 0 0 6px}
+.advantage-bar-enemy{height:100%;background:var(--enemy);transition:width .5s;position:absolute;right:0;top:0;border-radius:0 6px 6px 0}
+.advantage-bar-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);z-index:1}
+.verdict{text-align:center;font-size:13px;font-weight:600;margin-top:4px}
+
+.analysis-section{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.analysis-section-header{padding:8px 14px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.analysis-section-body{padding:10px}
+
+.matrix-wrap{overflow-x:auto}
+.matrix-table{border-collapse:collapse;width:100%}
+.matrix-table th,.matrix-table td{padding:4px 6px;text-align:center;font-size:10px;border:1px solid var(--border)}
+.matrix-table th{background:var(--card);color:var(--text2);font-weight:600}
+.matrix-table th img,.matrix-table td img{width:22px;height:22px;border-radius:3px;vertical-align:middle}
+.matrix-cell{font-weight:700;min-width:48px}
+
+.comp-bars{display:flex;flex-direction:column;gap:8px}
+.comp-row{display:flex;align-items:center;gap:8px}
+.comp-label{font-size:11px;font-weight:600;min-width:50px}
+.comp-bar-bg{flex:1;height:18px;background:var(--card);border-radius:4px;overflow:hidden;display:flex}
+.comp-bar-phys{height:100%;background:var(--carry);transition:width .4s;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+.comp-bar-magic{height:100%;background:var(--mid-r);transition:width .4s;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+.comp-timing{font-size:10px;color:var(--text2)}
+
+.syn-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)}
+.syn-row:last-child{border-bottom:none}
+.syn-row img{width:22px;height:22px;border-radius:3px}
+.syn-name{font-size:11px;font-weight:600}
+.syn-bonus{font-size:10px;font-weight:700;color:var(--ally);margin-left:auto}
+
+.rec-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rec-col{background:var(--card);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.rec-col.priority{border-color:var(--highlight);box-shadow:0 0 8px rgba(251,191,36,.15)}
+.rec-col-header{padding:4px 8px;font-size:10px;font-weight:700;color:#fff;text-align:center}
+.rec-hero{display:flex;align-items:center;gap:4px;padding:3px 6px;cursor:pointer;transition:background .1s;border-radius:var(--radius-sm);margin:2px}
+.rec-hero:hover{background:var(--card-hover)}
+.rec-hero img{width:18px;height:18px;border-radius:3px}
+.rec-hero-name{font-size:10px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-hero-score{font-size:9px;font-weight:700}
+
+/* PLAN */
+#tab-plan{flex-direction:column;overflow-y:auto;padding:16px;gap:12px}
+.hero-select{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.hero-select-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 16px;background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:all .2s;min-width:90px}
+.hero-select-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,45,120,.2)}
+.hero-select-card img{width:48px;height:48px;border-radius:var(--radius)}
+.hero-select-card .hs-name{font-size:12px;font-weight:700}
+.hero-select-card .hs-roles{font-size:9px;color:var(--text2)}
+
+.plan-header{display:flex;align-items:center;gap:12px;padding:12px;background:var(--panel);border-radius:var(--radius-lg);border:1px solid var(--border)}
+.plan-header img{width:44px;height:44px;border-radius:var(--radius)}
+.plan-header .ph-name{font-size:18px;font-weight:700;color:var(--accent)}
+.plan-header .ph-roles{font-size:11px;color:var(--text2)}
+.plan-header .ph-note{font-size:10px;color:var(--text3);font-style:italic;max-width:500px}
+.plan-header .ph-wr{margin-left:auto;font-size:14px;font-weight:700}
+
+.plan-body{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plan-section{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.plan-section-header{padding:6px 12px;font-size:12px;font-weight:700;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.plan-section-body{padding:8px}
+
+.counter-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.counter-row:last-child{border-bottom:none}
+.counter-row img{width:22px;height:22px;border-radius:3px}
+.counter-name{font-size:11px;font-weight:600}
+.counter-wr{margin-left:auto;font-size:11px;font-weight:700}
+.counter-wr.games{font-size:9px;color:var(--text3);font-weight:400;margin-left:4px}
+
+.target-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.target-row img{width:22px;height:22px;border-radius:3px}
+.target-name{font-size:11px;font-weight:600}
+.target-reason{font-size:9px;color:var(--text2)}
+
+.item-row{display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:4px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);transition:border-color .15s}
+.item-row:hover{border-color:var(--text3)}
+.item-icon{font-size:18px;width:28px;text-align:center}
+.item-info{flex:1}
+.item-name{font-size:11px;font-weight:700}
+.item-reason{font-size:10px;color:var(--text2)}
+.item-priority{font-size:8px;font-weight:700;letter-spacing:1px;text-align:center;padding:2px 6px;border-radius:3px}
+.item-cost{font-size:9px;color:var(--text3);text-align:right}
+
+.advice-block{padding:8px 12px;line-height:1.5}
+.advice-block p{margin-bottom:4px;font-size:12px}
+
+.plan-comp{display:flex;gap:12px;margin-top:4px}
+.plan-comp-side{flex:1}
+.plan-comp-label{font-size:10px;font-weight:600;margin-bottom:4px}
+
+.empty-state{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+
+.pos-popup{position:fixed;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;z-index:100;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.pos-popup-item{padding:4px 12px;font-size:11px;cursor:pointer;color:var(--text);transition:background .1s}
+.pos-popup-item:hover{background:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="draft">🎮 Драфт</button>
+    <button class="tab-btn" data-tab="analysis">📊 Анализ</button>
+    <button class="tab-btn" data-tab="plan">🗺 План на игру</button>
+    <div class="tab-nav-right">
+      <select id="bracket-sel" class="rank-sel"></select>
+      <button class="nav-btn" id="btn-undo">↶ Undo</button>
+      <button class="nav-btn" id="btn-new">🗑 Новый</button>
+    </div>
+  </nav>
+
+  <div id="tab-draft" class="tab-content active">
+    <div class="draft-grid-area">
+      <div class="grid-toolbar">
+        <input type="text" class="grid-search" id="hero-search" placeholder="Поиск героя...">
+        <div class="team-toggle">
+          <button id="tog-ally" class="active-ally">✅ Свои</button>
+          <button id="tog-enemy">⚔ Враги</button>
+        </div>
+      </div>
+      <div class="heroes-scroll" id="hero-scroll"></div>
+    </div>
+    <div class="draft-sidebar" id="draft-sidebar"></div>
+  </div>
+
+  <div id="tab-analysis" class="tab-content"></div>
+  <div id="tab-plan" class="tab-content"></div>
+</div>
+
+<script>
+const ROLE_COLORS={"Carry":"#f97316","Mid":"#a855f7","Offlane":"#3b82f6","Support":"#22c55e","Roaming":"#ef4444"};
+const PI={"Carry":{"icon":"🗡","label":"Pos1","color":"#f97316"},"Mid":{"icon":"⚡","label":"Pos2","color":"#a855f7"},"Offlane":{"icon":"🛡","label":"Pos3","color":"#3b82f6"},"Support":{"icon":"💙","label":"Pos5","color":"#22c55e"},"Roaming":{"icon":"👟","label":"Pos4","color":"#ef4444"}};
+const POSITIONS=["Carry","Mid","Offlane","Support","Roaming"];
+
+let heroes=[],heroIcons={},targetTeam='ally',ds=null,posInfo=null,curTab='draft',cachedRecs=null;
+
+async function init(){
+  try{
+    heroes=await pywebview.api.get_all_heroes();
+    heroIcons=(await pywebview.api.get_hero_icons(36))||{};
+    posInfo=await pywebview.api.get_position_info();
+    const brackets=await pywebview.api.get_brackets();
+    const sel=document.getElementById('bracket-sel');
+    brackets.forEach(b=>{const o=document.createElement('option');o.value=b.key;o.textContent=b.label+' ('+b.mmr+')';sel.appendChild(o)});
+    sel.addEventListener('change',()=>pywebview.api.set_bracket(sel.value));
+    await refresh();
+    setupTabs();setupToolbar();
+  }catch(e){document.body.innerHTML='<pre style="color:red;padding:20px">Init error: '+e.message+'\n'+e.stack+'</pre>'}
+}
+
+function setupTabs(){
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      btn.classList.add('active');
+      const tab=btn.dataset.tab;
+      document.getElementById('tab-'+tab).classList.add('active');
+      curTab=tab;
+      if(tab==='analysis')renderAnalysis();
+      if(tab==='plan')renderPlan();
+    });
+  });
+}
+
+function setupToolbar(){
+  document.getElementById('btn-undo').addEventListener('click',async()=>{await pywebview.api.undo();await refresh()});
+  document.getElementById('btn-new').addEventListener('click',async()=>{if(confirm('Очистить?')){await pywebview.api.new_draft();await refresh()}});
+  document.getElementById('tog-ally').addEventListener('click',()=>setTeam('ally'));
+  document.getElementById('tog-enemy').addEventListener('click',()=>setTeam('enemy'));
+  document.getElementById('hero-search').addEventListener('input',()=>renderGrid());
+}
+
+function setTeam(t){
+  targetTeam=t;
+  document.getElementById('tog-ally').className=t==='ally'?'active-ally':'';
+  document.getElementById('tog-enemy').className=t==='enemy'?'active-enemy':'';
+}
+
+async function refresh(){
+  ds=await pywebview.api.get_draft_state();
+  cachedRecs=null;
+  renderGrid();renderSidebar();
+  if(curTab==='analysis')try{renderAnalysis()}catch(e){document.getElementById('tab-analysis').innerHTML='<pre style="color:red;padding:20px">Analysis error: '+e.message+'</pre>'}
+  if(curTab==='plan')try{renderPlan()}catch(e){document.getElementById('tab-plan').innerHTML='<pre style="color:red;padding:20px">Plan error: '+e.message+'</pre>'}
+}
+
+function renderGrid(){
+  const c=document.getElementById('hero-scroll');
+  const q=(document.getElementById('hero-search').value||'').toLowerCase();
+  const ex=new Set([...(ds.all_picked||[]),...(ds.all_banned||[])]);
+  let h='';
+  if(q){
+    const f=heroes.filter(x=>x.localized_name.toLowerCase().includes(q)&&!ex.has(x.id));
+    h+='<div class="hero-grid">';
+    f.forEach(x=>{h+=cell(x,ex)});
+    h+='</div>';
+  }else{
+    POSITIONS.forEach(role=>{
+      const rh=heroes.filter(x=>x.roles.includes(role));
+      const avail=rh.filter(x=>!ex.has(x.id));
+      if(!rh.length)return;
+      h+=`<div class="role-section"><div class="role-header"><span class="role-label" style="background:${ROLE_COLORS[role]}">${role}</span><span class="role-count">${avail.length}/${rh.length}</span></div><div class="hero-grid">`;
+      rh.forEach(x=>{h+=cell(x,ex)});
+      h+='</div></div>';
+    });
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('.hero-cell:not(.excluded)').forEach(el=>{
+    el.addEventListener('click',()=>onClick(parseInt(el.dataset.id)));
+  });
+}
+
+function cell(x,ex){
+  const e=ex.has(x.id);
+  const img=heroIcons[String(x.id)]||'';
+  return `<div class="hero-cell${e?' excluded':''}" data-id="${x.id}" title="${x.localized_name}"><img src="${img}" alt="${x.localized_name}"></div>`;
+}
+
+async function onClick(id){
+  if(targetTeam==='ally')await pywebview.api.add_ally_pick(id);
+  else await pywebview.api.add_enemy_pick(id);
+  await refresh();
+}
+
+async function renderSidebar(){
+  const sb=document.getElementById('draft-sidebar');
+  let h='';
+  h+=teamPanel('✅ Свои','ally-hdr',ds.ally_picks,true);
+  h+=teamPanel('⚔ Враги','enemy-hdr',ds.enemy_picks,false);
+  h+=banPanel();
+  h+='<div id="ban-suggestions"></div>';
+  h+='<div id="draft-recs-area"></div>';
+  sb.innerHTML=h;
+
+  sb.querySelectorAll('.slot-remove').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      const hid=parseInt(el.dataset.id);
+      if(el.dataset.team==='ally')await pywebview.api.remove_ally_pick(hid);
+      else await pywebview.api.remove_enemy_pick(hid);
+      await refresh();
+    });
+  });
+  sb.querySelectorAll('.slot-pos').forEach(el=>{
+    el.addEventListener('click',e=>showPosPopup(e,parseInt(el.dataset.id)));
+  });
+  sb.querySelectorAll('.ban-icon').forEach(el=>{
+    el.addEventListener('click',async()=>{await pywebview.api.remove_ban(parseInt(el.dataset.id));await refresh()});
+  });
+  const ba=sb.querySelector('.ban-add');
+  if(ba)ba.addEventListener('click',()=>showBanSearch());
+  loadBanSuggestions();
+  loadDraftRecs();
+}
+
+function teamPanel(title,hc,picks,isAlly){
+  let h=`<div class="team-panel"><div class="team-panel-header ${hc}">${title} <span style="font-size:10px;color:var(--text2)">${picks.length}/5</span></div><div class="team-slots">`;
+  picks.forEach(p=>{
+    const img=heroIcons[String(p.hero_id)]||'';
+    let badge='';
+    if(p.position&&PI[p.position]){
+      const pi=PI[p.position];
+      badge=`<span class="slot-pos${isAlly&&p.is_overridden?' overridden':''}" style="background:${pi.color}" data-id="${p.hero_id}">${pi.label}</span>`;
+    }
+    h+=`<div class="team-slot"><img src="${img}"><span class="slot-name">${p.hero_name}</span>${badge}<span class="slot-remove" data-id="${p.hero_id}" data-team="${isAlly?'ally':'enemy'}">✕</span></div>`;
+  });
+  if(!picks.length)h+=`<div style="padding:8px;text-align:center;font-size:10px;color:var(--text3)">Нажми на героя</div>`;
+  h+='</div></div>';
+  return h;
+}
+
+function banPanel(){
+  const bans=[...(ds.ally_bans||[]),...(ds.enemy_bans||[])];
+  let h=`<div class="ban-panel"><div class="ban-header">💀 Баны <span class="ban-add">＋</span></div><div class="ban-icons">`;
+  bans.forEach(hid=>{
+    const img=heroIcons[String(hid)]||'';
+    const hr=heroes.find(x=>x.id===hid);
+    h+=`<img class="ban-icon" src="${img}" data-id="${hid}" title="${hr?hr.localized_name:'?'}">`;
+  });
+  if(!bans.length)h+=`<span style="font-size:10px;color:var(--text3)">Нет банов</span>`;
+  h+=`</div><div class="ban-search" id="ban-search-area" style="display:none"><input type="text" id="ban-search-input" placeholder="Поиск для бана..."><div class="ban-results" id="ban-results"></div></div></div>`;
+  return h;
+}
+
+function showBanSearch(){
+  const a=document.getElementById('ban-search-area');
+  if(!a)return;
+  a.style.display='block';
+  const inp=document.getElementById('ban-search-input');
+  inp.focus();
+  inp.oninput=()=>{
+    const q=inp.value.toLowerCase();
+    const ex=new Set([...(ds.all_picked||[]),...(ds.all_banned||[])]);
+    const r=heroes.filter(x=>x.localized_name.toLowerCase().includes(q)&&!ex.has(x.id)).slice(0,8);
+    const c=document.getElementById('ban-results');
+    c.innerHTML=r.map(x=>`<div class="ban-result" data-id="${x.id}">${x.localized_name}</div>`).join('');
+    c.querySelectorAll('.ban-result').forEach(el=>{
+      el.addEventListener('click',async()=>{await pywebview.api.add_ban(parseInt(el.dataset.id));await refresh()});
+    });
+  };
+}
+
+function showPosPopup(event,heroId){
+  document.querySelectorAll('.pos-popup').forEach(p=>p.remove());
+  const popup=document.createElement('div');
+  popup.className='pos-popup';
+  POSITIONS.forEach(pos=>{
+    const pi=PI[pos];
+    const item=document.createElement('div');
+    item.className='pos-popup-item';
+    item.textContent=pi.icon+' '+pi.label;
+    item.addEventListener('click',async()=>{await pywebview.api.set_position_override(heroId,pos);popup.remove();await refresh()});
+    popup.appendChild(item);
+  });
+  const auto=document.createElement('div');
+  auto.className='pos-popup-item';
+  auto.textContent='↺ Авто';
+  auto.addEventListener('click',async()=>{await pywebview.api.set_position_override(heroId,null);popup.remove();await refresh()});
+  popup.appendChild(auto);
+  document.body.appendChild(popup);
+  popup.style.left=event.clientX+'px';
+  popup.style.top=event.clientY+'px';
+  setTimeout(()=>document.addEventListener('click',function cl(e){if(!popup.contains(e.target)){popup.remove();document.removeEventListener('click',cl)}},false),10);
+}
+
+async function loadBanSuggestions(){
+  const s=await pywebview.api.get_ban_suggestions();
+  const c=document.getElementById('ban-suggestions');
+  if(!c)return;
+  if(!s.length){c.innerHTML='';return}
+  let h='<div class="ban-suggest"><div class="ban-suggest-title">💡 Рекомендуемые баны</div>';
+  s.forEach(x=>{
+    const img=heroIcons[String(x.hero_id)]||'';
+    h+=`<div class="ban-suggest-item" data-id="${x.hero_id}"><img src="${img}"><span class="bs-name">${x.name}</span><span class="bs-reason">${x.reasons.join(', ')}</span><span class="bs-score">+${x.counter_score}</span></div>`;
+  });
+  h+='</div>';
+  c.innerHTML=h;
+  c.querySelectorAll('.ban-suggest-item').forEach(el=>{
+    el.addEventListener('click',async()=>{await pywebview.api.add_ban(parseInt(el.dataset.id));await refresh()});
+  });
+}
+
+async function loadDraftRecs(){
+  const area=document.getElementById('draft-recs-area');
+  if(!area)return;
+  if(!ds.ally_picks.length&&!ds.enemy_picks.length){area.innerHTML='';return}
+  try{
+  if(!cachedRecs)cachedRecs=await pywebview.api.get_recommendations();
+  const recs=cachedRecs;
+  const analysis=await pywebview.api.get_analysis();
+  const missing=analysis.missing_ally_positions||[];
+  if(!missing.length&&ds.ally_picks.length>=5){area.innerHTML='';return}
+
+  const priRole=missing[0]||null;
+  let h=`<div class="draft-recs"><div class="draft-recs-header">🏆 Кого пикнуть? ${priRole?'Нужен '+PI[priRole].label:'Все заняты'}</div><div class="draft-recs-body">`;
+
+  const shown=[];
+  POSITIONS.forEach(role=>{
+    const list=recs[role]||[];
+    const isPri=role===priRole;
+    list.slice(0,isPri?3:1).forEach((x,i)=>{
+      if(shown.includes(x.hero_id))return;
+      shown.push(x.hero_id);
+      const img=heroIcons[String(x.hero_id)]||'';
+      const sc=x.total_score;
+      const scCol=sc>=65?'var(--good)':sc>=50?'var(--mid)':'var(--bad)';
+      const why=x.explanation&&x.explanation!=='сбалансированный пик'?x.explanation:'';
+      const medals=['🥇','🥈','🥉'];
+      h+=`<div class="draft-rec-row" data-id="${x.hero_id}" data-name="${x.hero_name}"><img src="${img}"><span class="dr-name">${medals[i]||'•'} ${x.hero_name}</span><span class="dr-role" style="background:${PI[role].color}">${PI[role].label}</span>${why?`<span class="dr-why">${why}</span>`:''}<span class="dr-score" style="color:${scCol}">${sc.toFixed(0)}</span></div>`;
+    });
+  });
+  h+='</div></div>';
+  area.innerHTML=h;
+  area.querySelectorAll('.draft-rec-row').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      await pywebview.api.add_ally_pick(parseInt(el.dataset.id));
+      await refresh();
+    });
+  });
+  }catch(e){area.innerHTML='<div style="color:red;font-size:10px;padding:4px">Recs error: '+e.message+'</div>'}
+}
+
+/* ANALYSIS */
+async function renderAnalysis(){
+  const tab=document.getElementById('tab-analysis');
+  if(!ds.ally_picks.length&&!ds.enemy_picks.length){
+    tab.innerHTML='<div class="empty-state">Добавь героев в драфте, потом приходи сюда</div>';
+    return;
+  }
+  const[analysis,matrix,recs]=await Promise.all([
+    pywebview.api.get_analysis(),
+    pywebview.api.get_counter_matrix(),
+    pywebview.api.get_recommendations()
+  ]);
+
+  let h='';
+
+  // Advantage bar
+  const at=analysis.ally_total,et=analysis.enemy_total;
+  const total=Math.max(Math.abs(at)+Math.abs(et),1);
+  const allyW=Math.max(5,Math.min(95,(at/total)*100));
+  const vCol=analysis.winner==='ally'?'var(--good)':analysis.winner==='enemy'?'var(--bad)':'var(--mid)';
+  h+=`<div class="advantage-bar-wrap"><div class="advantage-bar-container"><div class="advantage-bar-ally" style="width:${allyW}%"></div><div class="advantage-bar-enemy" style="width:${100-allyW}%"></div><div class="advantage-bar-text">${at.toFixed(0)} vs ${et.toFixed(0)}</div></div><div class="verdict" style="color:${vCol}">${analysis.verdict}</div></div>`;
+
+  // Counter matrix
+  if(matrix.allies.length&&matrix.enemies.length){
+    h+='<div class="analysis-section"><div class="analysis-section-header">⚔ Контрпики — матрица</div><div class="analysis-section-body"><div class="matrix-wrap"><table class="matrix-table"><tr><th></th>';
+    matrix.enemies.forEach(e=>{
+      const img=heroIcons[String(e.hero_id)]||'';
+      h+=`<th><img src="${img}"><br><span style="font-size:9px">${e.name.split(' ').pop()}</span></th>`;
+    });
+    h+='</tr>';
+    matrix.allies.forEach(a=>{
+      const aimg=heroIcons[String(a.hero_id)]||'';
+      h+=`<tr><th style="text-align:right"><img src="${aimg}"> ${a.name.split(' ').pop()}</th>`;
+      matrix.enemies.forEach(e=>{
+        const wr=(matrix.matrix[String(a.hero_id)]||{})[String(e.hero_id)];
+        if(wr===null||wr===undefined){
+          h+=`<td class="matrix-cell" style="background:var(--card);color:var(--text3)">—</td>`;
+        }else{
+          const bg=wr>55?'#1a4d2e':wr>52?'#1a3d2e':wr>48?'var(--card)':wr>45?'#3d1a1a':'#4d1a1a';
+          const fg=wr>52?'var(--good)':wr<48?'var(--bad)':'var(--text2)';
+          h+=`<td class="matrix-cell" style="background:${bg};color:${fg}">${wr.toFixed(1)}%</td>`;
+        }
+      });
+      h+='</tr>';
+    });
+    h+='</table></div></div></div>';
+  }
+
+  // Composition
+  const comp=analysis.composition||{};
+  h+='<div class="analysis-section"><div class="analysis-section-header">📊 Состав команд</div><div class="analysis-section-body"><div class="comp-bars">';
+  h+=compBar('Враги',comp.physical_pct||0,comp.magical_pct||0,comp.timing||'balanced','var(--enemy)');
+  h+=compBar('Свои',comp.physical_pct||0,comp.magical_pct||0,comp.timing||'balanced','var(--ally)');
+  h+='</div></div></div>';
+
+  // Key factors
+  if(analysis.key_factors&&analysis.key_factors.length){
+    h+='<div class="analysis-section"><div class="analysis-section-header">🔍 Ключевые факторы</div><div class="analysis-section-body">';
+    analysis.key_factors.forEach(f=>{h+=`<div style="font-size:11px;padding:2px 0;color:var(--text2)">• ${f}</div>`});
+    h+='</div></div>';
+  }
+
+  // Recs
+  if(recs&&Object.keys(recs).length){
+    h+='<div class="analysis-section"><div class="analysis-section-header">🏆 Рекомендации по ролям</div><div class="analysis-section-body"><div class="rec-grid">';
+    const pri=(analysis.missing_ally_positions||[])[0]||null;
+    POSITIONS.forEach(role=>{
+      const list=recs[role]||[];
+      const isPri=role===pri;
+      const color=PI[role].color;
+      h+=`<div class="rec-col${isPri?' priority':''}"><div class="rec-col-header" style="background:${isPri?'var(--highlight)':color};color:${isPri?'#1a1a1a':'#fff'}">${PI[role].icon} ${PI[role].label}</div>`;
+      list.forEach((x,i)=>{
+        const img=heroIcons[String(x.hero_id)]||'';
+        const sc=x.total_score;
+        const scCol=sc>=65?'var(--good)':sc>=50?'var(--mid)':'var(--bad)';
+        const medals=['🥇','🥈','🥉'];
+        h+=`<div class="rec-hero" data-id="${x.hero_id}" data-name="${x.hero_name}"><img src="${img}"><span class="rec-hero-name">${medals[i]||'•'} ${x.hero_name}</span><span class="rec-hero-score" style="color:${scCol}">${sc.toFixed(0)}</span></div>`;
+      });
+      if(!list.length)h+=`<div style="text-align:center;padding:6px;color:var(--text3);font-size:10px">—</div>`;
+      h+='</div>';
+    });
+    h+='</div></div></div>';
+  }
+
+  tab.innerHTML=h;
+  tab.querySelectorAll('.rec-hero').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      await pywebview.api.add_ally_pick(parseInt(el.dataset.id));
+      await refresh();renderAnalysis();
+    });
+  });
+}
+
+function compBar(label,p,m,timing,color){
+  return `<div class="comp-row"><span class="comp-label" style="color:${color}">${label}</span><div class="comp-bar-bg"><div class="comp-bar-phys" style="width:${p}%">Физ ${p}%</div><div class="comp-bar-magic" style="width:${m}%">Маг ${m}%</div></div><span class="comp-timing">${timing==='early'?'Ранняя':timing==='late'?'Лейт':'Баланс'}</span></div>`;
+}
+
+/* PLAN */
+let selectedMyHero=null;
+
+async function renderPlan(){
+  const tab=document.getElementById('tab-plan');
+  if(!ds.ally_picks.length){
+    tab.innerHTML='<div class="empty-state">Добавь своих героев в драфте</div>';
+    return;
+  }
+  if(!selectedMyHero){
+    let h='<div style="text-align:center;padding:20px"><div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:16px">Выбери за кого ты играешь</div><div class="hero-select">';
+    ds.ally_picks.forEach(p=>{
+      const img=heroIcons[String(p.hero_id)]||'';
+      const hr=heroes.find(x=>x.id===p.hero_id);
+      const roles=hr?hr.roles:[];
+      h+=`<div class="hero-select-card" data-id="${p.hero_id}"><img src="${img}"><div class="hs-name">${p.hero_name}</div><div class="hs-roles">${roles.join(' · ')}</div></div>`;
+    });
+    h+='</div></div>';
+    tab.innerHTML=h;
+    tab.querySelectorAll('.hero-select-card').forEach(el=>{
+      el.addEventListener('click',async()=>{selectedMyHero=parseInt(el.dataset.id);await renderPlan()});
+    });
+    return;
+  }
+
+  const plan=await pywebview.api.get_game_plan(selectedMyHero);
+  const himg=heroIcons[String(plan.my_hero_id)]||'';
+  const wrCol=plan.my_winrate>=52?'var(--good)':plan.my_winrate>=48?'var(--mid)':'var(--bad)';
+
+  let h=`<div class="plan-header"><img src="${himg}"><div style="flex:1"><div class="ph-name">${plan.my_hero_name}</div><div class="ph-roles">${plan.my_roles.join(' · ')}</div>${plan.my_note?`<div class="ph-note">${plan.my_note}</div>`:''}</div><div class="ph-wr" style="color:${wrCol}">${plan.my_winrate.toFixed(1)}%</div><button class="nav-btn" onclick="selectedMyHero=null;renderPlan()" style="margin-left:8px">Сменить</button></div>`;
+
+  h+='<div class="plan-body"><div style="display:flex;flex-direction:column;gap:8px">';
+
+  h+=planSection('⚔ Кого ты контришь','var(--good)',plan.i_counter.map(c=>counterRow(c.hero_id,c.hero_name,c.winrate_vs,c.games_played,'good')).join('')||'<div style="padding:8px;font-size:11px;color:var(--text3)">Нет ярких контрпиков</div>');
+  h+=planSection('⚠ Кто контрит тебя','var(--bad)',plan.counter_me.map(c=>counterRow(c.hero_id,c.hero_name,c.winrate_vs,c.games_played,'bad')).join('')||'<div style="padding:8px;font-size:11px;color:var(--good)">Нет серьёзных угроз</div>');
+  const synRows=plan.synergy_with.map(s=>{
+    const img=heroIcons[String(s.hero_id)]||'';
+    return `<div class="syn-row"><img src="${img}"><span class="syn-name">${s.name}</span>${s.synergy_bonus>0?`<span class="syn-bonus">+${s.synergy_bonus}</span>`:''}</div>`;
+  }).join('');
+  h+=planSection('💙 Синергия','var(--ally)',synRows||'<div style="padding:8px;font-size:11px;color:var(--text3)">Нет особых синергий</div>');
+  h+=planSection('🗺 Совет по лайну','var(--accent)',`<div class="advice-block">${plan.lane_advice.replace(/\n/g,'<br>')}</div>`);
+  h+=planSection('⚔ Совет по тимфайту','var(--enemy)',`<div class="advice-block">${plan.teamfight_advice.replace(/\n/g,'<br>')}</div>`);
+  h+='</div><div style="display:flex;flex-direction:column;gap:8px">';
+
+  h+=planSection('🎯 Кого фокусить','var(--accent)',plan.focus_targets.map(t=>{
+    const img=heroIcons[String(t.hero_id)]||'';
+    return `<div class="target-row"><img src="${img}"><span class="target-name">${t.name} ${'🔴'.repeat(Math.min(t.priority,5))}</span><span class="target-reason">${t.reasons.join(', ')}</span></div>`;
+  }).join('')||'<div style="padding:8px;font-size:11px;color:var(--text3)">Нет данных</div>');
+
+  h+=planSection('🛡 От кого защищаться','var(--bad)',plan.protect_from.map(t=>{
+    const img=heroIcons[String(t.hero_id)]||'';
+    return `<div class="target-row"><img src="${img}"><span class="target-name">${t.name} ${'⚠'.repeat(Math.min(t.danger,5))}</span><span class="target-reason">${t.reasons.join(', ')}</span></div>`;
+  }).join('')||'<div style="padding:8px;font-size:11px;color:var(--good)">Нет особых угроз</div>');
+
+  h+=planSection('📊 Состав команд','var(--mid)',`<div class="plan-comp"><div class="plan-comp-side"><div class="plan-comp-label" style="color:var(--enemy)">Враги</div>${compBarSm(plan.enemy_phys_pct,plan.enemy_magic_pct)}<div style="font-size:9px;color:var(--text3)">Тайминг: ${plan.enemy_timing==='early'?'ранняя':plan.enemy_timing==='late'?'лейт':'баланс'}</div></div><div class="plan-comp-side"><div class="plan-comp-label" style="color:var(--ally)">Свои</div>${compBarSm(plan.ally_phys_pct,plan.ally_magic_pct)}<div style="font-size:9px;color:var(--text3)">Тайминг: ${plan.ally_timing==='early'?'ранняя':plan.ally_timing==='late'?'лейт':'баланс'}</div></div></div>`);
+
+  const pL={5:'МАСТ',4:'НАДО',3:'ХОР',2:'ОК',1:'ЛАТ'};
+  const pC={5:'var(--bad)',4:'#ff8844',3:'var(--mid)',2:'var(--good)',1:'var(--text3)'};
+  const items=plan.items.map(x=>{
+    const p=x.priority;
+    return `<div class="item-row"><span class="item-icon">${x.icon}</span><div class="item-info"><div class="item-name">${x.name}</div><div class="item-reason">${x.reason}</div></div><span class="item-priority" style="background:${pC[p]||'var(--text3)'};color:#fff">${pL[p]||'?'}</span><span class="item-cost">${x.cost}g</span></div>`;
+  }).join('');
+  h+=planSection('🎒 Что собирать','var(--ban)',items||'<div style="padding:8px;font-size:11px;color:var(--text3)">Нет особых рекомендаций</div>');
+  h+='</div></div>';
+  tab.innerHTML=h;
+}
+
+function counterRow(hid,name,wr,games,type){
+  const img=heroIcons[String(hid)]||'';
+  const col=type==='good'?'var(--good)':'var(--bad)';
+  return `<div class="counter-row"><img src="${img}"><span class="counter-name">${name}</span><span class="counter-wr" style="color:${col}">${wr.toFixed(1)}%</span>${games?`<span class="counter-wr games">(${games})</span>`:''}</div>`;
+}
+
+function planSection(title,color,body){
+  return `<div class="plan-section"><div class="plan-section-header" style="color:${color}">${title}</div><div class="plan-section-body">${body}</div></div>`;
+}
+
+function compBarSm(p,m){
+  return `<div class="comp-bar-bg" style="height:14px;border-radius:3px;margin:4px 0"><div class="comp-bar-phys" style="width:${p}%;font-size:8px">${p}%</div><div class="comp-bar-magic" style="width:${m}%;font-size:8px">${m}%</div></div>`;
+}
+
+window.addEventListener('pywebviewready',init);
+window.addEventListener('focus',()=>{if(typeof ds!=='undefined'&&ds){renderGrid();renderSidebar()}});
+(function(){const d=document.createElement('div');d.style.cssText='position:fixed;top:-1px;left:-1px;width:1px;height:1px;pointer-events:none;animation:hb 2s infinite';document.head.insertAdjacentHTML('beforeend','<style>@keyframes hb{0%,100%{opacity:.99}50%{opacity:1}}</style>');document.body.appendChild(d)})();</script>
+</body>
+</html>

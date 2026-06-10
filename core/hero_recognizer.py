@@ -192,31 +192,32 @@ def download_hero_icons(output_dir: Path = None):
     
     from data.heroes_static import get_all_heroes
     import requests
-    
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     heroes = get_all_heroes()
     base_url = "https://cdn.dota2.com/apps/dota2/images/heroes/"
-    
+
     print(f"Загрузка иконок в {output_dir}...")
-    
+
     for hero_id, hero in heroes.items():
         hero_name = hero["name"]
-        # Формат: {name}_sb.png (small icon)
         url = f"{base_url}{hero_name}_sb.png"
         output_path = output_dir / f"{hero_id}.png"
-        
+
         if output_path.exists():
-            continue  # Пропускаем существующие
-        
+            continue
+
         try:
-            response = requests.get(url, timeout=10)
-            if response.status_code == 200:
+            response = requests.get(url, timeout=10, verify=False)
+            if response.status_code == 200 and len(response.content) > 500:
                 with open(output_path, 'wb') as f:
                     f.write(response.content)
-                print(f"  ✓ {hero['localized_name']}")
+                print(f"  OK {hero['localized_name']}")
             else:
-                print(f"  ✗ {hero['localized_name']} (HTTP {response.status_code})")
+                print(f"  SKIP {hero['localized_name']} (HTTP {response.status_code})")
         except Exception as e:
-            print(f"  ✗ {hero['localized_name']}: {e}")
+            print(f"  ERR {hero['localized_name']}: {type(e).__name__}")
     
     print(f"\nИконки сохранены в: {output_dir}")
 

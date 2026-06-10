@@ -44,6 +44,48 @@ class DraftState:
     # Метаданные
     game_mode: str = ""  # all_pick, captains_mode, etc.
     is_radiant: bool = True  # Мы играем за Radiant (слева) или Dire (справа)
+
+    # Ручное указание роли для союзников (hero_id -> позиция)
+    # Если задано — assign_positions зафиксирует героя на этой позиции
+    ally_position_overrides: Dict[int, str] = field(default_factory=dict)
+
+    # Undo история: список снимков состояния
+    _undo_stack: List[dict] = field(default_factory=list)
+    _undo_max: int = 30
+
+    def _snapshot(self) -> dict:
+        return {
+            "ally_picks": [(p.hero_id, p.hero_name) for p in self.ally_picks],
+            "enemy_picks": [(p.hero_id, p.hero_name) for p in self.enemy_picks],
+            "ally_bans": list(self.ally_bans),
+            "enemy_bans": list(self.enemy_bans),
+            "overrides": dict(self.ally_position_overrides),
+        }
+
+    def _restore(self, snap: dict):
+        self.ally_picks = [
+            HeroPick(hero_id=hid, hero_name=name, is_ally=True, order=i + 1)
+            for i, (hid, name) in enumerate(snap["ally_picks"])
+        ]
+        self.enemy_picks = [
+            HeroPick(hero_id=hid, hero_name=name, is_ally=False, order=i + 1)
+            for i, (hid, name) in enumerate(snap["enemy_picks"])
+        ]
+        self.ally_bans = list(snap.get("ally_bans", []))
+        self.enemy_bans = list(snap.get("enemy_bans", []))
+        self.ally_position_overrides = dict(snap.get("overrides", {}))
+
+    def push_undo(self):
+        self._undo_stack.append(self._snapshot())
+        if len(self._undo_stack) > self._undo_max:
+            self._undo_stack.pop(0)
+
+    def undo(self) -> bool:
+        if not self._undo_stack:
+            return False
+        snap = self._undo_stack.pop()
+        self._restore(snap)
+        return True
     
     def add_ally_pick(self, hero_id: int, hero_name: str) -> HeroPick:
         """Добавить пик союзника"""
@@ -68,18 +110,30 @@ class DraftState:
         return pick
     
     def add_ally_ban(self, hero_id: int):
-        """Добавить бан союзников"""
         if hero_id not in self.ally_bans:
             self.ally_bans.append(hero_id)
     
     def add_enemy_ban(self, hero_id: int):
-        """Добавить бан врагов"""
         if hero_id not in self.enemy_bans:
             self.enemy_bans.append(hero_id)
+
+    def remove_ally_ban(self, hero_id: int):
+        self.ally_bans = [b for b in self.ally_bans if b != hero_id]
+
+    def remove_enemy_ban(self, hero_id: int):
+        self.enemy_bans = [b for b in self.enemy_bans if b != hero_id]
     
+    def set_position_override(self, hero_id: int, position: Optional[str]):
+        """Задать вручную позицию для героя союзника (или сбросить если None)"""
+        if position is None:
+            self.ally_position_overrides.pop(hero_id, None)
+        else:
+            self.ally_position_overrides[hero_id] = position
+
     def remove_ally_pick(self, hero_id: int):
         """Удалить пик союзника по ID"""
         self.ally_picks = [p for p in self.ally_picks if p.hero_id != hero_id]
+        self.ally_position_overrides.pop(hero_id, None)
         self._reorder()
     
     def remove_enemy_pick(self, hero_id: int):
@@ -146,16 +200,16 @@ class DraftState:
             return 'enemy' if total_picks % 2 == 0 else 'ally'
     
     def reset(self):
-        """Сбросить состояние"""
         self.phase = DraftPhase.NOT_STARTED
         self.ally_picks = []
         self.enemy_picks = []
         self.ally_bans = []
         self.enemy_bans = []
         self.game_mode = ""
+        self.ally_position_overrides = {}
+        self._undo_stack = []
     
     def to_dict(self) -> dict:
-        """Сериализация в словарь"""
         return {
             "phase": self.phase.value,
             "ally_picks": [
@@ -169,6 +223,7 @@ class DraftState:
             "ally_bans": self.ally_bans,
             "enemy_bans": self.enemy_bans,
             "is_radiant": self.is_radiant,
+            "ally_position_overrides": self.ally_position_overrides,
         }
     
     def __str__(self) -> str:

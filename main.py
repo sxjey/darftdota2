@@ -17,43 +17,22 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 
 def check_dependencies():
-    """Проверить установленные зависимости"""
     missing = []
-    
-    try:
-        import tkinter
-    except ImportError:
-        missing.append("tkinter (входит в Python, возможно нужна переустановка)")
-    
-    try:
-        import cv2
-    except ImportError:
-        missing.append("opencv-python (pip install opencv-python)")
-    
-    try:
-        import requests
-    except ImportError:
-        missing.append("requests (pip install requests)")
-    
-    try:
-        import numpy
-    except ImportError:
-        missing.append("numpy (pip install numpy)")
-    
-    try:
-        import PIL
-    except ImportError:
-        missing.append("Pillow (pip install Pillow)")
-    
+    for import_name, pip_name in [
+        ("webview", "pywebview"),
+        ("cv2", "opencv-python"),
+        ("requests", "requests"),
+        ("numpy", "numpy"),
+        ("PIL", "Pillow"),
+    ]:
+        try:
+            __import__(import_name)
+        except ImportError:
+            missing.append(pip_name)
     if missing:
-        print("❌ Отсутствуют зависимости:")
-        for m in missing:
-            print(f"   - {m}")
-        print("\nУстанови все зависимости:")
-        print("   pip install -r requirements.txt")
+        print("Missing deps: " + ", ".join(missing))
+        print("pip install " + " ".join(missing))
         return False
-    
-    print("✅ Все зависимости установлены")
     return True
 
 
@@ -151,13 +130,48 @@ def manual_draft():
 
 
 def run_gui():
-    """Запустить GUI"""
-    print("="*60)
-    print("ЗАПУСК DRAFT ASSISTANT")
-    print("="*60)
-    
-    from ui.main_window import main
-    main()
+    import webview
+    from ui.api import Api
+    import threading
+
+    api = Api()
+    html_path = Path(__file__).parent / "ui" / "web" / "index.html"
+    url = str(html_path)
+
+    window = webview.create_window(
+        "Dota 2 Draft Assistant",
+        url=url,
+        js_api=api,
+        width=1200,
+        height=800,
+        min_size=(900, 600),
+        resizable=True,
+        background_color='#1a1a2e',
+    )
+
+    def bind_focus_fix():
+        try:
+            import clr
+            clr.AddReference("System.Windows.Forms")
+            from System.Windows.Forms import Application
+            form = Application.OpenForms[0]
+            was_active = [True]
+            def on_activate(s, e):
+                if not was_active[0]:
+                    was_active[0] = True
+                    window.load_url(url)
+            def on_deactivate(s, e):
+                was_active[0] = False
+            form.Activated += on_activate
+            form.Deactivate += on_deactivate
+        except Exception:
+            pass
+
+    def on_shown():
+        threading.Thread(target=bind_focus_fix, daemon=True).start()
+
+    window.events.shown += on_shown
+    webview.start(http_server=True)
 
 
 def main():
@@ -186,7 +200,7 @@ def main():
     elif args.manual:
         manual_draft()
     elif args.download_icons:
-        print("Загрузка иконок героев...")
+        print("Downloading hero icons...")
         from core.hero_recognizer import download_hero_icons
         download_hero_icons()
     else:

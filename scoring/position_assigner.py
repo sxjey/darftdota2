@@ -2,6 +2,9 @@
 Авто-назначение позиций героям в команде.
 Если в команде все герои carry — всё равно распределяет по 5 позициям,
 выбирая наименее болезненное распределение.
+
+Поддерживает ручные оверрайды: если для героя задана конкретная позиция,
+он фиксируется на ней, а остальные распределяются автоматически.
 """
 import itertools
 from typing import List, Dict, Optional
@@ -33,23 +36,29 @@ def fit_score(hero_roles: List[str], position: str) -> int:
     return max((pos_compat.get(r, 1) for r in hero_roles), default=1)
 
 
-def assign_positions(picks: List, all_positions: List[str] = None) -> Dict[str, Optional[dict]]:
+def assign_positions(picks: List, all_positions: List[str] = None,
+                     overrides: Dict[int, str] = None) -> Dict[str, Optional[dict]]:
     """
     Распределяет пикнутых героев по позициям через перебор.
+    Герои с ручным оверрайдом фиксируются на своей позиции,
+    остальные распределяются оптимально.
     
     Args:
         picks: список объектов HeroPick (или dict с hero_id)
+        overrides: {hero_id: position} — ручное указание позиции
     
     Returns:
         {position: {hero_id, name, ...} или None если позиция пуста}
     """
     if all_positions is None:
         all_positions = POSITIONS
-    
+
     result = {p: None for p in all_positions}
     if not picks:
         return result
-    
+
+    overrides = overrides or {}
+
     # Готовим данные
     hero_infos = []
     for pick in picks:
@@ -60,27 +69,37 @@ def assign_positions(picks: List, all_positions: List[str] = None) -> Dict[str, 
             'name': pick.hero_name if hasattr(pick, 'hero_name') else hero_data.get('localized_name', '?'),
             'roles': hero_data.get('roles', []),
         })
-    
-    n = len(hero_infos)
-    if n > len(all_positions):
-        n = len(all_positions)
-        hero_infos = hero_infos[:n]
-    
-    # Перебираем все способы выбрать N позиций из 5 и расставить героев
+
+    # Фиксируем героев с ручным оверрайдом
+    free_heroes = []
+    free_positions = list(all_positions)
+    for h in hero_infos:
+        pos = overrides.get(h['hero_id'])
+        if pos and pos in free_positions:
+            result[pos] = h
+            free_positions.remove(pos)
+        else:
+            free_heroes.append(h)
+
+    # Авто-распределение оставшихся
+    n = len(free_heroes)
+    if n == 0:
+        return result
+
     best_score = -1
     best_assignment = None
-    
-    for positions_subset in itertools.combinations(all_positions, n):
+
+    for positions_subset in itertools.combinations(free_positions, n):
         for perm in itertools.permutations(positions_subset):
-            score = sum(fit_score(hero_infos[i]['roles'], perm[i]) for i in range(n))
+            score = sum(fit_score(free_heroes[i]['roles'], perm[i]) for i in range(n))
             if score > best_score:
                 best_score = score
                 best_assignment = perm
-    
+
     if best_assignment:
         for i, pos in enumerate(best_assignment):
-            result[pos] = hero_infos[i]
-    
+            result[pos] = free_heroes[i]
+
     return result
 
 
